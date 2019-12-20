@@ -1,17 +1,6 @@
 package com.example.android.done;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,8 +9,16 @@ import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 
 public class Deadline extends Fragment {
@@ -40,15 +37,6 @@ public class Deadline extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_deadline, container, false);
-        calendarView = (CalendarView) v.findViewById(R.id.calendar_view);
-        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                String deadline = dayOfMonth + "/" + month + "/" + year;
-                viewModel.setDeadline(deadline);
-                Toast.makeText(getContext(), "Deadline: "+deadline , Toast.LENGTH_SHORT).show();
-            }
-        });
 
         return v;
 
@@ -60,6 +48,32 @@ public class Deadline extends Fragment {
 
         viewModel = ViewModelProviders.of(getActivity()).get(SharedViewModel.class);
         navController = Navigation.findNavController(view);
+        calendarView = (CalendarView) view.findViewById(R.id.calendar_view);
+        if (!viewModel.getDeadline().trim().isEmpty()) {
+            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+            try {
+                Date date = format.parse(viewModel.getDeadline());
+                int day = date.getDate();
+                int month = date.getMonth();
+                int yr = date.getYear();
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.YEAR, yr+1900);
+                calendar.set(Calendar.MONTH, month+1);
+                calendar.set(Calendar.DAY_OF_MONTH, day);
+                long millitime = calendar.getTimeInMillis();
+                calendarView.setDate(millitime);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                String deadline = dayOfMonth + "/" + month + "/" + year;
+                viewModel.setDeadline(deadline);
+                Toast.makeText(getContext(), "Deadline: " + deadline, Toast.LENGTH_SHORT).show();
+            }
+        });
         Button next = (Button) view.findViewById(R.id.next);
         next.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,7 +81,6 @@ public class Deadline extends Fragment {
                 navController.navigate(R.id.action_deadline_to_customize);
             }
         });
-
 
 
     }

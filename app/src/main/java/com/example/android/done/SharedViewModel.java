@@ -8,13 +8,13 @@ import java.util.ArrayList;
 
 public class SharedViewModel extends ViewModel {
 
-    private String goalName;
-    private String motivation;
-    private String priority;
-    private String deadline;
+    private String goalName = "";
+    private String motivation = "";
+    private String priority = "";
+    private String deadline = "";
     private ArrayList<String> days;
-    private int hour;
-    private int minute;
+    private int hour = 0;
+    private int minute = 0;
 
     public String getGoalName() {
         return goalName;
