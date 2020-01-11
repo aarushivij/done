@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.view.View;
@@ -25,6 +26,7 @@ import android.app.DialogFragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -32,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     NavController navController;
     GoalViewModel goalViewModel;
-    private List<Goal> goalList;
+    private ArrayList<Goal> goalArrayList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +50,31 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(List<Goal> goals) {
 
+                Calendar calendar = Calendar.getInstance();
+                int day = calendar.get(Calendar.DAY_OF_WEEK);
+                String today = "SUNDAY";
+                if (day == 2) {
+                    today = "MONDAY";
+                } else if (day == 3) {
+                    today = "TUESDAY";
+                } else if (day == 4) {
+                    today = "WEDNESDAY";
+                } else if (day == 5) {
+                    today = "THURSDAY";
+                } else if (day == 6) {
+                    today = "FRIDAY";
+                } else if (day == 7) {
+                    today = "SATURDAY";
+                }
+
                 for (int i =0; i< goals.size() ; i++ )
                 {
-                    String title = goals.get(i).getGoalName();
-                    int hour = goals.get(i).getHour();
-                    int minute = goals.get(i).getMinute();
-                    Calendar c = Calendar.getInstance();
-                    c.set(Calendar.HOUR_OF_DAY , hour);
-                    c.set(Calendar.MINUTE , minute);
-                    c.set(Calendar.SECOND , 0);
-                    startAlarm(c, i , title);
+
+                    goals.get(i).setStatus1();
+                    if (goals.get(i).getCustomizeConverter().contains(today)&&goals.get(i).getStatus()==0) {
+                        goalArrayList.add(goals.get(i));
+                        setAlarm(goalArrayList);
+                    }
 
 
                 }
@@ -68,13 +85,44 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void startAlarm(Calendar c , int i , String  title)
+    private void setAlarm(ArrayList<Goal> goals)
+    {
+        for (int i=0; i< goals.size();i++){
+
+        int hour = goals.get(i).getHour();
+        int minute = goals.get(i).getMinute();
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, hour);
+        c.set(Calendar.MINUTE, minute);
+        c.set(Calendar.SECOND, 0);
+            int day = c.get(Calendar.DAY_OF_WEEK);
+            String today = "SUNDAY";
+            if (day == 2) {
+                today = "MONDAY";
+            } else if (day == 3) {
+                today = "TUESDAY";
+            } else if (day == 4) {
+                today = "WEDNESDAY";
+            } else if (day == 5) {
+                today = "THURSDAY";
+            } else if (day == 6) {
+                today = "FRIDAY";
+            } else if (day == 7) {
+                today = "SATURDAY";
+            }
+        startAlarm(c, i, goals.get(i) , today);
+    }
+
+    }
+
+    private void startAlarm(Calendar c , int i , Goal goal , String today)
     {
         AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this , AlertReceiver.class);
-        intent.putExtra("Title" , title);
+        intent.putExtra("Title" , goal.getGoalName());
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this , i , intent ,0 );
         alarmManager.set(AlarmManager.RTC_WAKEUP , c.getTimeInMillis() , pendingIntent);
+
 
     }
 
